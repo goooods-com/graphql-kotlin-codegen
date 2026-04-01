@@ -20,3 +20,7 @@ open class FederatedTypeResolver(
 ) {
     open fun field(arg: String, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String = field
 }
+
+interface FederatedTypeResolverFieldContract {
+    fun field(arg: String, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String
+}

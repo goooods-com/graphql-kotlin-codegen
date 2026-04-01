@@ -106,6 +106,10 @@ open class MyTypeToConsolidateParent2WithConfig {
     open fun field(input: MyTypeToConsolidateWithConfigInput, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String? = throw NotImplementedError("MyTypeToConsolidateParent2WithConfig.field must be implemented.")
 }
 
+interface MyTypeToConsolidateParent2WithConfigFieldContract {
+    fun field(input: MyTypeToConsolidateWithConfigInput, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String?
+}
+
 @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
 data class MyTypeNotToConsolidateParentWithConfig(
     val field: MyTypeNotToConsolidate2WithConfig? = null

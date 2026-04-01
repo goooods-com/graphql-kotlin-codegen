@@ -170,6 +170,22 @@ export const configSchema = object({
     ),
   ),
   /**
+   * Controls the generated method shape for `*FieldContract` interfaces.
+   *
+   * `DIRECT` generates regular methods with GraphQL return types.
+   * `SUSPEND` generates suspend methods.
+   * `COMPLETABLE_FUTURE` wraps the return type in `java.util.concurrent.CompletableFuture`.
+   *
+   * @default DIRECT
+   */
+  fieldContractClassMethods: optional(
+    union([
+      literal("DIRECT"),
+      literal("SUSPEND"),
+      literal("COMPLETABLE_FUTURE"),
+    ]),
+  ),
+  /**
    * Denotes the generation strategy for union types. Can be `ANNOTATION_CLASS` or `MARKER_INTERFACE`.
    *
    * The `MARKER_INTERFACE` option is highly recommended, since it is more type-safe than using annotation classes.
