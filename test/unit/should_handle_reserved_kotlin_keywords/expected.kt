@@ -17,6 +17,10 @@ open class TypeWithReservedKotlinKeywordsAndFieldArgs(
     open fun `throw`(`else`: String? = null, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String? = `throw`
 }
 
+interface TypeWithReservedKotlinKeywordsAndFieldArgsFieldContract {
+    fun `throw`(`else`: String? = null, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String?
+}
+
 @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
 data class `true`(
     val field: String? = null

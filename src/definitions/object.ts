@@ -25,6 +25,7 @@ import {
 } from "../utils/dependent-type-utils";
 import {
   buildConstructorFieldDefinition,
+  buildFieldContractDefinition,
   buildObjectFieldDefinition,
 } from "./field";
 import { CodegenConfigWithDefaults } from "../config/build-config-with-defaults";
@@ -100,6 +101,7 @@ ${getClassMembers({ node, fieldNodes, schema, config })}
     node,
     typeInResolverInterfacesConfig,
   );
+  const fieldContract = buildFieldContract({ node, schema, config });
   if (shouldGenerateFunctions) {
     const atLeastOneFieldHasNoArguments = node.fields?.some(
       (fieldNode) => !fieldNode.arguments?.length,
@@ -118,14 +120,16 @@ ${getClassMembers({ node, fieldNodes, schema, config })}
             .join(",\n")}\n)`
         : "";
 
-    return `${annotations}${outputRestrictionAnnotation}open class ${name}${constructor}${interfaceInheritance} {
+    const generatedClass = `${annotations}${outputRestrictionAnnotation}open class ${name}${constructor}${interfaceInheritance} {
 ${getClassMembers({ node, fieldNodes, schema, config })}
 }`;
+    return [generatedClass, fieldContract].filter(Boolean).join("\n\n");
   }
 
-  return `${annotations}${outputRestrictionAnnotation}data class ${name}(
+  const generatedDataClass = `${annotations}${outputRestrictionAnnotation}data class ${name}(
 ${getClassMembers({ node, schema, config })}
 )${interfaceInheritance}`;
+  return [generatedDataClass, fieldContract].filter(Boolean).join("\n\n");
 }
 
 function getClassMembers({
@@ -161,4 +165,37 @@ export function shouldGenerateFunctionsInClass(
     typeInResolverInterfacesConfig ||
     node.fields?.some((fieldNode) => fieldNode.arguments?.length),
   );
+}
+
+function buildFieldContract({
+  node,
+  schema,
+  config,
+}: {
+  node: ObjectTypeDefinitionNode;
+  schema: GraphQLSchema;
+  config: CodegenConfigWithDefaults;
+}) {
+  const fieldsWithArguments = node.fields?.filter(
+    (fieldNode) => fieldNode.arguments?.length,
+  );
+  if (!fieldsWithArguments?.length) {
+    return "";
+  }
+
+  const contractName = `${sanitizeName(node.name.value)}FieldContract`;
+  const members = fieldsWithArguments
+    .map((fieldNode) =>
+      buildFieldContractDefinition({
+        node,
+        fieldNode,
+        schema,
+        config,
+      }),
+    )
+    .join("\n");
+
+  return `interface ${contractName} {
+${members}
+}`;
 }

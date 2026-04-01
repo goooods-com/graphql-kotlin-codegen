@@ -169,6 +169,52 @@ export function buildInterfaceFieldDefinition({
   return `${annotations}${field}`;
 }
 
+export function buildFieldContractDefinition({
+  node,
+  fieldNode,
+  schema,
+  config,
+}: {
+  node: ObjectTypeDefinitionNode;
+  fieldNode: FieldDefinitionNode;
+  schema: GraphQLSchema;
+  config: CodegenConfigWithDefaults;
+}) {
+  const typeInResolverInterfacesConfig = findTypeInResolverInterfacesConfig(
+    node,
+    config,
+  );
+  const functionModifier =
+    typeInResolverInterfacesConfig?.classMethods === "SUSPEND"
+      ? "suspend fun"
+      : "fun";
+  const functionDefinition = `${functionModifier} ${sanitizeName(fieldNode.name.value)}${buildFieldArguments(
+    node,
+    fieldNode,
+    schema,
+    typeInResolverInterfacesConfig,
+    config,
+  )}`;
+  const typeMetadata = buildTypeMetadata(fieldNode.type, schema, config);
+  let typeDefinition = `${typeMetadata.typeName}${typeMetadata.isNullable ? "?" : ""}`;
+
+  if (typeInResolverInterfacesConfig?.dataFetcherResult) {
+    typeDefinition = `graphql.execution.DataFetcherResult<${typeDefinition}>`;
+  }
+  if (typeInResolverInterfacesConfig?.classMethods === "COMPLETABLE_FUTURE") {
+    typeDefinition = `java.util.concurrent.CompletableFuture<${typeDefinition}>`;
+  }
+
+  const annotations = buildAnnotations({
+    schema,
+    config,
+    definitionNode: fieldNode,
+    typeMetadata,
+  });
+
+  return `${annotations}${indent(`${functionDefinition}: ${typeDefinition}`, 2)}`;
+}
+
 function buildField(
   node: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode,
   fieldNode: FieldDefinitionNode,
