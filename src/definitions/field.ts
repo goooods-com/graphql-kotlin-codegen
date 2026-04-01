@@ -180,28 +180,19 @@ export function buildFieldContractDefinition({
   schema: GraphQLSchema;
   config: CodegenConfigWithDefaults;
 }) {
-  const typeInResolverInterfacesConfig = findTypeInResolverInterfacesConfig(
-    node,
-    config,
-  );
   const functionModifier =
-    typeInResolverInterfacesConfig?.classMethods === "SUSPEND"
-      ? "suspend fun"
-      : "fun";
+    config.fieldContractClassMethods === "SUSPEND" ? "suspend fun" : "fun";
   const functionDefinition = `${functionModifier} ${sanitizeName(fieldNode.name.value)}${buildFieldArguments(
     node,
     fieldNode,
     schema,
-    typeInResolverInterfacesConfig,
+    undefined,
     config,
   )}`;
   const typeMetadata = buildTypeMetadata(fieldNode.type, schema, config);
   let typeDefinition = `${typeMetadata.typeName}${typeMetadata.isNullable ? "?" : ""}`;
 
-  if (typeInResolverInterfacesConfig?.dataFetcherResult) {
-    typeDefinition = `graphql.execution.DataFetcherResult<${typeDefinition}>`;
-  }
-  if (typeInResolverInterfacesConfig?.classMethods === "COMPLETABLE_FUTURE") {
+  if (config.fieldContractClassMethods === "COMPLETABLE_FUTURE") {
     typeDefinition = `java.util.concurrent.CompletableFuture<${typeDefinition}>`;
   }
 
