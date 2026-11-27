@@ -169,6 +169,43 @@ export function buildInterfaceFieldDefinition({
   return `${annotations}${field}`;
 }
 
+export function buildFieldContractDefinition({
+  node,
+  fieldNode,
+  schema,
+  config,
+}: {
+  node: ObjectTypeDefinitionNode;
+  fieldNode: FieldDefinitionNode;
+  schema: GraphQLSchema;
+  config: CodegenConfigWithDefaults;
+}) {
+  const functionModifier =
+    config.fieldContractClassMethods === "SUSPEND" ? "suspend fun" : "fun";
+  const functionDefinition = `${functionModifier} ${sanitizeName(fieldNode.name.value)}${buildFieldArguments(
+    node,
+    fieldNode,
+    schema,
+    undefined,
+    config,
+  )}`;
+  const typeMetadata = buildTypeMetadata(fieldNode.type, schema, config);
+  let typeDefinition = `${typeMetadata.typeName}${typeMetadata.isNullable ? "?" : ""}`;
+
+  if (config.fieldContractClassMethods === "COMPLETABLE_FUTURE") {
+    typeDefinition = `java.util.concurrent.CompletableFuture<${typeDefinition}>`;
+  }
+
+  const annotations = buildAnnotations({
+    schema,
+    config,
+    definitionNode: fieldNode,
+    typeMetadata,
+  });
+
+  return `${annotations}${indent(`${functionDefinition}: ${typeDefinition}`, 2)}`;
+}
+
 function buildField(
   node: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode,
   fieldNode: FieldDefinitionNode,

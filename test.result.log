@@ -1,0 +1,284 @@
+bun test v1.3.11 (af24e281)
+
+test/plugin.test.ts:
+(pass) graphql-kotlin-codegen > should_support_custom_scalars [6.56ms]
+(pass) graphql-kotlin-codegen > should_honor_union_generation_config [2.47ms]
+27 |       expect(() => plugin(...pluginArgs)).toThrow(config.expectedErrorMessage);
+28 |       return;
+29 |     }
+30 |     const result = await plugin(...pluginArgs);
+31 |     await Bun.write(`${filePath}/actual.kt`, result.toString());
+32 |     expect(result).toEqual(await Bun.file(`${filePath}/expected.kt`).text());
+                        ^
+error: expect(received).toEqual(expected)
+
+@@ -6,21 +6,29 @@
+  open class TypeWithOnlyFieldArgs {
+      open fun nullableResolver(arg: String, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String? = throw NotImplementedError("TypeWithOnlyFieldArgs.nullableResolver must be implemented.")
+      open fun nonNullableResolver(arg: InputTypeForResolver, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String = throw NotImplementedError("TypeWithOnlyFieldArgs.nonNullableResolver must be implemented.")
+  }
+  
++ interface TypeWithOnlyFieldArgsFieldContract {
++     fun nullableResolver(arg: String, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String?
++     fun nonNullableResolver(arg: InputTypeForResolver, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String
++ }
++ 
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  open class HybridType(
+      val nullableField: String? = null,
+      val nonNullableField: String,
+      private val nullableResolver: String? = null,
+      private val nonNullableResolver: String
+  ) {
+      open fun nullableResolver(arg: String, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String? = nullableResolver
+      open fun nonNullableResolver(arg: InputTypeForResolver, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String = nonNullableResolver
++ }
++ 
++ interface HybridTypeFieldContract {
++     fun nullableResolver(arg: String, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String?
++     fun nonNullableResolver(arg: InputTypeForResolver, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String
+  }
+  
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.INPUT_OBJECT])
+  data class InputTypeForResolver(
+      val field: String? = null
+@@ -44,8 +52,12 @@
+      private val nullableListResolver: List<String?>? = null,
+      private val nonNullableListResolver: List<String> = emptyList()
+  ) : HybridInterface {
+      override fun nullableListResolver(arg1: Int?, arg2: Int, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): List<String?>? = nullableListResolver
+      override fun nonNullableListResolver(arg1: Int, arg2: Int?, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): List<String> = nonNullableListResolver
++ }
++ 
++ interface TypeImplementingInterfaceFieldContract {
++     fun nullableListResolver(arg1: Int?, arg2: Int, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): List<String?>?
++     fun nonNullableListResolver(arg1: Int, arg2: Int?, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): List<String>
+  }
+  "
+
+- Expected  - 0
++ Received  + 15
+
+      at <anonymous> (/Users/sfunasaka/git/graphql-kotlin-codegen-fork/test/plugin.test.ts:32:20)
+(fail) graphql-kotlin-codegen > should_generate_classes_for_types_with_field_args [2.49ms]
+(pass) graphql-kotlin-codegen > should_honor_includeDependentTypes_false_for_external_unions_and_interfaces [0.86ms]
+(pass) graphql-kotlin-codegen > should_generate_input_types_properly [0.41ms]
+(pass) graphql-kotlin-codegen > should_generate_union_types_properly [0.56ms]
+(pass) graphql-kotlin-codegen > should_honor_resolverInterfaces_config [1.40ms]
+(pass) graphql-kotlin-codegen > should_honor_base_configs [1.50ms]
+27 |       expect(() => plugin(...pluginArgs)).toThrow(config.expectedErrorMessage);
+28 |       return;
+29 |     }
+30 |     const result = await plugin(...pluginArgs);
+31 |     await Bun.write(`${filePath}/actual.kt`, result.toString());
+32 |     expect(result).toEqual(await Bun.file(`${filePath}/expected.kt`).text());
+                        ^
+error: expect(received).toEqual(expected)
+
+@@ -104,11 +104,14 @@
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  open class MyTypeToConsolidateParent2WithConfig {
+      open fun field(input: MyTypeToConsolidateWithConfigInput, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String? = throw NotImplementedError("MyTypeToConsolidateParent2WithConfig.field must be implemented.")
+  }
+  
++ interface MyTypeToConsolidateParent2WithConfigFieldContract {
++     fun field(input: MyTypeToConsolidateWithConfigInput, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String?
++ }
++ 
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  data class MyTypeNotToConsolidateParentWithConfig(
+      val field: MyTypeNotToConsolidate2WithConfig? = null
+  )
+  
+
+- Expected  - 0
++ Received  + 4
+
+      at <anonymous> (/Users/sfunasaka/git/graphql-kotlin-codegen-fork/test/plugin.test.ts:32:20)
+(fail) graphql-kotlin-codegen > should_honor_class_consolidation_config [2.91ms]
+(pass) graphql-kotlin-codegen > should_honor_dependentTypesInScope_config [0.99ms]
+(pass) graphql-kotlin-codegen > should_honor_dataFetcherResult_config_suspend [0.46ms]
+(pass) graphql-kotlin-codegen > should_default_non_nullable_boolean_fields_to_false [0.37ms]
+(pass) graphql-kotlin-codegen > should_ignore_filtered_directiveReplacements_for_consolidated_types [1.16ms]
+(pass) graphql-kotlin-codegen > should_convert_graphql_float_to_kotlin_double [0.37ms]
+(pass) graphql-kotlin-codegen > should_honor_directiveReplacements_config_with_multiple_directives [0.43ms]
+(pass) graphql-kotlin-codegen > should_generate_multi_union_types_properly [0.38ms]
+(pass) graphql-kotlin-codegen > should_throw_config_validation_error [0.19ms]
+(pass) graphql-kotlin-codegen > should_generate_interfaces_with_inheritance [0.56ms]
+27 |       expect(() => plugin(...pluginArgs)).toThrow(config.expectedErrorMessage);
+28 |       return;
+29 |     }
+30 |     const result = await plugin(...pluginArgs);
+31 |     await Bun.write(`${filePath}/actual.kt`, result.toString());
+32 |     expect(result).toEqual(await Bun.file(`${filePath}/expected.kt`).text());
+                        ^
+error: expect(received).toEqual(expected)
+
+@@ -71,11 +71,14 @@
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  open class MyTypeToConsolidateParent2 {
+      open fun field(input: MyTypeToConsolidate, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String? = throw NotImplementedError("MyTypeToConsolidateParent2.field must be implemented.")
+  }
+  
++ interface MyTypeToConsolidateParent2FieldContract {
++     fun field(input: MyTypeToConsolidate, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String?
++ }
++ 
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  data class MyTypeNotToConsolidateParent(
+      val field: MyTypeNotToConsolidate2? = null
+  )
+  
+
+- Expected  - 0
++ Received  + 4
+
+      at <anonymous> (/Users/sfunasaka/git/graphql-kotlin-codegen-fork/test/plugin.test.ts:32:20)
+(fail) graphql-kotlin-codegen > should_consolidate_input_and_output_types [1.29ms]
+(pass) graphql-kotlin-codegen > should_honor_dataFetcherResult_config_completable_future [0.61ms]
+(pass) graphql-kotlin-codegen > should_annotate_types_properly [0.71ms]
+27 |       expect(() => plugin(...pluginArgs)).toThrow(config.expectedErrorMessage);
+28 |       return;
+29 |     }
+30 |     const result = await plugin(...pluginArgs);
+31 |     await Bun.write(`${filePath}/actual.kt`, result.toString());
+32 |     expect(result).toEqual(await Bun.file(`${filePath}/expected.kt`).text());
+                        ^
+error: expect(received).toEqual(expected)
+
+  "package com.kotlin.generated
+  
+  import com.expediagroup.graphql.generator.annotations.*
+  
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  data class TypeWithReservedKotlinKeywords(
+      val `as`: String? = null,
+      val `break`: String? = null,
+      val `is`: String? = null
+  )
+  
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  open class TypeWithReservedKotlinKeywordsAndFieldArgs(
+      val `typeof`: String? = null,
+      private val `throw`: String? = null
+  ) {
+      open fun `throw`(`else`: String? = null, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String? = `throw`
+  }
+  
++ interface TypeWithReservedKotlinKeywordsAndFieldArgsFieldContract {
++     fun `throw`(`else`: String? = null, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String?
++ }
++ 
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  data class `true`(
+      val field: String? = null
+  )
+  
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.INPUT_OBJECT])
+  data class InputWithReservedKotlinKeywords(
+      val `continue`: String? = null,
+      val `class`: String? = null,
+      val `do`: String? = null
+  )
+  
+  enum class EnumWithReservedKotlinKeywords {
+      `fun`,
+      `package`,
+      `val`;
+  
+      companion object {
+          fun findByName(name: String, ignoreCase: Boolean = false): EnumWithReservedKotlinKeywords? = values().find { it.name.equals(name, ignoreCase = ignoreCase) }
+      }
+  }
+  
+  interface InterfaceWithReservedKotlinKeywords {
+      val `null`: String?
+      val `return`: String?
+      val `object`: String?
+  }
+  
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  data class TypeForUnion1(
+      val field: String? = null
+  ) : `this`
+  
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  data class TypeForUnion2(
+      val field: String? = null
+  ) : `this`
+  
+  interface `this`
+  "
+
+- Expected  - 0
++ Received  + 4
+
+      at <anonymous> (/Users/sfunasaka/git/graphql-kotlin-codegen-fork/test/plugin.test.ts:32:20)
+(fail) graphql-kotlin-codegen > should_handle_reserved_kotlin_keywords [0.72ms]
+27 |       expect(() => plugin(...pluginArgs)).toThrow(config.expectedErrorMessage);
+28 |       return;
+29 |     }
+30 |     const result = await plugin(...pluginArgs);
+31 |     await Bun.write(`${filePath}/actual.kt`, result.toString());
+32 |     expect(result).toEqual(await Bun.file(`${filePath}/expected.kt`).text());
+                        ^
+error: expect(received).toEqual(expected)
+
+  "package com.kotlin.generated
+  
+  import com.expediagroup.graphql.generator.annotations.*
+  
+  @com.expediagroup.graphql.generator.federation.directives.ExtendsDirective
+  @com.expediagroup.graphql.generator.federation.directives.KeyDirective(com.expediagroup.graphql.generator.federation.directives.FieldSet("some field"))
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  data class FederatedType(
+      @param:com.expediagroup.graphql.generator.federation.directives.ExternalDirective
+      val field: String
+  )
+  
+  @com.expediagroup.graphql.generator.federation.directives.ExtendsDirective
+  @com.expediagroup.graphql.generator.federation.directives.KeyDirective(com.expediagroup.graphql.generator.federation.directives.FieldSet("some other field"))
+  @GraphQLValidObjectLocations(locations = [GraphQLValidObjectLocations.Locations.OBJECT])
+  open class FederatedTypeResolver(
+      private val field: String,
+      @param:com.expediagroup.graphql.generator.federation.directives.ExternalDirective
+      val field2: String? = null
+  ) {
+      open fun field(arg: String, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String = field
+  }
++ 
++ interface FederatedTypeResolverFieldContract {
++     fun field(arg: String, dataFetchingEnvironment: graphql.schema.DataFetchingEnvironment): String
++ }
+  "
+
+- Expected  - 0
++ Received  + 4
+
+      at <anonymous> (/Users/sfunasaka/git/graphql-kotlin-codegen-fork/test/plugin.test.ts:32:20)
+(fail) graphql-kotlin-codegen > should_replace_federation_directives [0.64ms]
+(pass) graphql-kotlin-codegen > should_generate_enums_properly [0.29ms]
+(pass) graphql-kotlin-codegen > should_generate_type_with_interface_field_type [0.30ms]
+(pass) graphql-kotlin-codegen > should_honor_packageName_config [0.31ms]
+(pass) graphql-kotlin-codegen > should_generate_non_nullable_union_list_types_properly [0.39ms]
+(pass) graphql-kotlin-codegen > should_include_dependent_types_in_onlyTypes_config [0.80ms]
+(pass) graphql-kotlin-codegen > should_handle_top_level_types_properly [0.46ms]
+(pass) graphql-kotlin-codegen > should_honor_directiveReplacements_definitionType_config [0.38ms]
+(pass) graphql-kotlin-codegen > should_generate_custom_directives [0.49ms]
+(pass) graphql-kotlin-codegen > should_honor_directiveReplacements_config [0.57ms]
+(pass) graphql-kotlin-codegen > should_generate_list_types_properly [0.28ms]
+(pass) graphql-kotlin-codegen > should_honor_onlyTypes_config [0.50ms]
+(pass) graphql-kotlin-codegen > should_generate_union_list_types_properly [0.38ms]
+(pass) graphql-kotlin-codegen > should_honor_includeDependentTypes_config [0.31ms]
+
+5 tests failed:
+(fail) graphql-kotlin-codegen > should_generate_classes_for_types_with_field_args [2.49ms]
+(fail) graphql-kotlin-codegen > should_honor_class_consolidation_config [2.91ms]
+(fail) graphql-kotlin-codegen > should_consolidate_input_and_output_types [1.29ms]
+(fail) graphql-kotlin-codegen > should_handle_reserved_kotlin_keywords [0.72ms]
+(fail) graphql-kotlin-codegen > should_replace_federation_directives [0.64ms]
+
+ 31 pass
+ 5 fail
+ 36 expect() calls
+Ran 36 tests across 1 file. [121.00ms]

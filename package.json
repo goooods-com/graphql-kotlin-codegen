@@ -44,11 +44,12 @@
     "lint": "bun ./scripts/check-headers.ts && eslint .",
     "lint:fix": "bun ./scripts/fix-headers.ts && eslint --fix .",
     "prepack": "bun run build",
-    "prepare": "husky",
+    "prepare": "npm run build",
     "unit": "bun test ./test/plugin.test.ts"
   },
   "type": "module",
   "workspaces": [
     "docs"
-  ]
+  ],
+  "version": "3.9.5-goooods.1"
 }

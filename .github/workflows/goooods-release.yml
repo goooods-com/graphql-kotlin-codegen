@@ -1,0 +1,51 @@
+# goooods 版のタグ (v<upstream の version>-goooods.<n>) を push したら、ビルド済みの npm tarball を
+# GitHub Release に添付する。goooods 側はこの tarball の URL を依存に書くので、
+# npm install 時にこのリポジトリの devDependencies と docs workspace のインストールとビルドが走らない。
+name: goooods release
+
+on:
+  push:
+    tags:
+      - "v*-goooods.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Pack and release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Setup node for npm pack
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+
+      # package.json の version は更新し忘れやすいので、tarball の version はタグから決める
+      - name: Set version from tag
+        run: npm version --no-git-tag-version --allow-same-version "${GITHUB_REF_NAME#v}"
+
+      - name: Pack
+        run: |
+          mkdir pack
+          npm pack --pack-destination pack
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" pack/*.tgz \
+            --title "$GITHUB_REF_NAME" \
+            --notes "Prebuilt npm tarball for goooods. Reference the attached .tgz URL as the dependency." \
+            --prerelease

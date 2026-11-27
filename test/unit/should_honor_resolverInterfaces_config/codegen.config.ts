@@ -1,6 +1,7 @@
 import { GraphQLKotlinCodegenConfig } from "../../../src/plugin";
 
 export default {
+  fieldContractClassMethods: "COMPLETABLE_FUTURE",
   resolverInterfaces: [
     {
       typeName: "MyIncludedResolverType",
